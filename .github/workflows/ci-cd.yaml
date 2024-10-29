@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+  on:
+    push:
+      branches:
+        - main
+
+  jobs:
+    build-and-deploy:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v2
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v1
+
+        - name: Login to Docker Hub
+          uses: docker/login-action@v1
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+        - name: Build and Push Docker Image
+          run: |
+            IMAGE_TAG=$(echo $GITHUB_SHA | head -c7)
+            docker build -t <your-dockerhub-username>/python-app:${IMAGE_TAG} .
+            docker push <your-dockerhub-username>/python-app:${IMAGE_TAG}
+            echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+        - name: Checkout Config Repo
+          uses: actions/checkout@v2
+          with:
+            repository: <your-username>/python-app-config
+            token: ${{ secrets.GITHUB_TOKEN }}
+            path: ./config
+
+        - name: Update Kubernetes Manifests
+          run: |
+            cd ./config
+            sed -i "s|image:.*|image: <your-dockerhub-username>/python-app:${IMAGE_TAG}|g" deployment.yaml
+            git config user.name "GitHub Actions"
+            git config user.email "<>"
+            git add deployment.yaml
+            git commit -m "Update image tag to ${IMAGE_TAG}"
+            git push origin main
