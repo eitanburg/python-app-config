@@ -24,21 +24,21 @@
         - name: Build and Push Docker Image
           run: |
             IMAGE_TAG=$(echo $GITHUB_SHA | head -c7)
-            docker build -t <your-dockerhub-username>/python-app:${IMAGE_TAG} .
-            docker push <your-dockerhub-username>/python-app:${IMAGE_TAG}
+            docker build -t eitanburg/python-app:${IMAGE_TAG} .
+            docker push eitanburg/python-app:${IMAGE_TAG}
             echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
 
         - name: Checkout Config Repo
           uses: actions/checkout@v2
           with:
-            repository: <your-username>/python-app-config
+            repository: eitanburg/python-app-config
             token: ${{ secrets.GITHUB_TOKEN }}
             path: ./config
 
         - name: Update Kubernetes Manifests
           run: |
             cd ./config
-            sed -i "s|image:.*|image: <your-dockerhub-username>/python-app:${IMAGE_TAG}|g" deployment.yaml
+            sed -i "s|image:.*|image: eitanburg/python-app:${IMAGE_TAG}|g" deployment.yaml
             git config user.name "GitHub Actions"
             git config user.email "<>"
             git add deployment.yaml
