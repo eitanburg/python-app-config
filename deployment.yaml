@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: python-app
-          image: eitanburg/python-app:d073ff7
+          image: eitanburg/python-app:85d295f
           ports:
             - containerPort: 5000
